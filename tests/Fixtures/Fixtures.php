@@ -102,3 +102,40 @@ class BrokenRulesRequest extends FormRequest
         return [];
     }
 }
+
+/**
+ * Resource whose toArray() carries a full array-shape PHPDoc annotation so that
+ * the phpdoc-parser-based extraction path is exercised.
+ */
+class TypedTestResource extends JsonResource
+{
+    /**
+     * @return array{id: int, name: string, score: float, is_active: bool, tags: array, note: string|null, nickname?: string}
+     */
+    public function toArray($request): array
+    {
+        return [
+            'id'        => 1,
+            'name'      => 'Alice',
+            'score'     => 9.5,
+            'is_active' => true,
+            'tags'      => [],
+            'note'      => null,
+            'nickname'  => 'ali',
+        ];
+    }
+}
+
+/**
+ * Resource with a generic array-shape annotation using quoted string keys.
+ */
+class QuotedKeyResource extends JsonResource
+{
+    /**
+     * @return array{'user_id': int, 'display_name': string}
+     */
+    public function toArray($request): array
+    {
+        return ['user_id' => 1, 'display_name' => 'Alice'];
+    }
+}
