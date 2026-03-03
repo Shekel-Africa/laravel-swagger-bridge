@@ -8,6 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Database\Eloquent\Model;
+use Shekel\SwaggerBridge\Http\Requests\QueryRequest;
 
 class TestController extends Controller
 {
@@ -137,5 +138,22 @@ class QuotedKeyResource extends JsonResource
     public function toArray($request): array
     {
         return ['user_id' => 1, 'display_name' => 'Alice'];
+    }
+}
+
+class TestQueryRequest extends QueryRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function queryRules(): array
+    {
+        return [
+            'search'   => 'sometimes|string',
+            'per_page' => 'integer',
+            'status'   => 'in:active,inactive',
+        ];
     }
 }

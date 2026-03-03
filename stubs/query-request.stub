@@ -1,0 +1,25 @@
+<?php
+
+namespace {{ namespace }};
+
+use Shekel\SwaggerBridge\Http\Requests\QueryRequest;
+
+class {{ class }} extends QueryRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Query parameter rules used for validation and Swagger schema generation.
+     *
+     * @return array<string, mixed>
+     */
+    public function queryRules(): array
+    {
+        return [
+            //
+        ];
+    }
+}
