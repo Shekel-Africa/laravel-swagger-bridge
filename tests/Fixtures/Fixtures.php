@@ -8,6 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Database\Eloquent\Model;
+use Shekel\SwaggerBridge\Http\Requests\QueryRequest;
 
 class TestController extends Controller
 {
@@ -100,5 +101,59 @@ class BrokenRulesRequest extends FormRequest
         // This will fail because route() is null in unit tests unless mocked
         $this->route()->named('fail');
         return [];
+    }
+}
+
+/**
+ * Resource whose toArray() carries a full array-shape PHPDoc annotation so that
+ * the phpdoc-parser-based extraction path is exercised.
+ */
+class TypedTestResource extends JsonResource
+{
+    /**
+     * @return array{id: int, name: string, score: float, is_active: bool, tags: array, note: string|null, nickname?: string}
+     */
+    public function toArray($request): array
+    {
+        return [
+            'id'        => 1,
+            'name'      => 'Alice',
+            'score'     => 9.5,
+            'is_active' => true,
+            'tags'      => [],
+            'note'      => null,
+            'nickname'  => 'ali',
+        ];
+    }
+}
+
+/**
+ * Resource with a generic array-shape annotation using quoted string keys.
+ */
+class QuotedKeyResource extends JsonResource
+{
+    /**
+     * @return array{'user_id': int, 'display_name': string}
+     */
+    public function toArray($request): array
+    {
+        return ['user_id' => 1, 'display_name' => 'Alice'];
+    }
+}
+
+class TestQueryRequest extends QueryRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function queryRules(): array
+    {
+        return [
+            'search'   => 'sometimes|string',
+            'per_page' => 'integer',
+            'status'   => 'in:active,inactive',
+        ];
     }
 }

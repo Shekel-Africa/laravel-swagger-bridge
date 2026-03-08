@@ -7,9 +7,10 @@ use OpenApi\Annotations\Get;
 use OpenApi\Annotations\Post;
 use OpenApi\Generator;
 use Shekel\SwaggerBridge\Mappers\RequestMapper;
+use Shekel\SwaggerBridge\Tests\Fixtures\BrokenRulesRequest;
 use Shekel\SwaggerBridge\Tests\Fixtures\TestGetRequest;
 use Shekel\SwaggerBridge\Tests\Fixtures\TestPostRequest;
-use Shekel\SwaggerBridge\Tests\Fixtures\BrokenRulesRequest;
+use Shekel\SwaggerBridge\Tests\Fixtures\TestQueryRequest;
 
 require_once __DIR__ . '/Fixtures/Fixtures.php';
 
@@ -80,6 +81,65 @@ class RequestMapperTest extends TestCase
         $this->assertEquals('notify', (string)$parameters[0]->name);
         $this->assertEquals('query', (string)$parameters[0]->in);
         $this->assertEquals('boolean', (string)$parameters[0]->schema->type);
+    }
+
+    // ------------------------------------------------------------------
+    // QueryRequest integration
+    // ------------------------------------------------------------------
+
+    public function test_query_request_maps_to_query_parameters_via_rules()
+    {
+        $operation = new Get(['method' => 'get', '_context' => new Context()]);
+
+        $this->mapper->map($operation, TestQueryRequest::class);
+
+        $parameters = $operation->parameters;
+        $this->assertIsArray($parameters);
+
+        $names = array_map(fn($p) => (string) $p->name, $parameters);
+        $this->assertContains('search', $names);
+        $this->assertContains('per_page', $names);
+        $this->assertContains('status', $names);
+    }
+
+    public function test_query_request_parameters_are_query_in()
+    {
+        $operation = new Get(['method' => 'get', '_context' => new Context()]);
+
+        $this->mapper->map($operation, TestQueryRequest::class);
+
+        foreach ($operation->parameters as $parameter) {
+            $this->assertEquals('query', (string) $parameter->in);
+        }
+    }
+
+    public function test_query_request_maps_correct_types()
+    {
+        $operation = new Get(['method' => 'get', '_context' => new Context()]);
+
+        $this->mapper->map($operation, TestQueryRequest::class);
+
+        $byName = [];
+        foreach ($operation->parameters as $p) {
+            $byName[(string) $p->name] = $p;
+        }
+
+        $this->assertEquals('string', (string) $byName['search']->schema->type);
+        $this->assertEquals('integer', (string) $byName['per_page']->schema->type);
+    }
+
+    public function test_query_request_detects_enum_values()
+    {
+        $operation = new Get(['method' => 'get', '_context' => new Context()]);
+
+        $this->mapper->map($operation, TestQueryRequest::class);
+
+        $byName = [];
+        foreach ($operation->parameters as $p) {
+            $byName[(string) $p->name] = $p;
+        }
+
+        $this->assertEquals(['active', 'inactive'], (array) $byName['status']->schema->enum);
     }
 
     public function test_it_gracefully_handles_broken_rules_method()
